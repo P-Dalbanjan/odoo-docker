@@ -1,4 +1,15 @@
 services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - web-network
+    depends_on:
+      - web
+
   web:
     image: odoo:17.0
     depends_on:
@@ -13,6 +24,10 @@ services:
       - PASSWORD_FILE=/run/secrets/postgresql_password
     secrets:
       - postgresql_password
+    networks:
+      - web-network
+      - db-network
+
   db:
     image: postgres:15
     environment:
@@ -24,6 +39,9 @@ services:
       - odoo-db-data:/var/lib/postgresql/data/pgdata
     secrets:
       - postgresql_password
+    networks:
+      - db-network
+
 volumes:
   odoo-web-data:
   odoo-db-data:
@@ -31,3 +49,8 @@ volumes:
 secrets:
   postgresql_password:
     file: odoo_pg_pass
+
+networks:
+  web-network:
+  db-network:
+    internal: true
