@@ -1,9 +1,3 @@
-# Odoo 17 Docker Deployment
-
-This repository provides a **minimal Docker Compose setup** for running **Odoo 17 with PostgreSQL 15** using Docker secrets and persistent volumes.
-
----
-
 # 🏗️ Architecture Overview
 
 The stack contains two services orchestrated using Docker Compose:
