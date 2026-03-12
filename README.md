@@ -1,7 +1,3 @@
-Here’s a **cleaned and refined README** that matches your **actual `docker-compose.yml`** (no nginx, correct ports, correct volumes, correct secrets).
-
----
-
 # Odoo 17 Docker Deployment
 
 This repository provides a **minimal Docker Compose setup** for running **Odoo 17 with PostgreSQL 15** using Docker secrets and persistent volumes.
