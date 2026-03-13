@@ -9,7 +9,6 @@ services:
       - web-network
     depends_on:
       - web
-
   web:
     image: odoo:17.0
     depends_on:
@@ -18,8 +17,6 @@ services:
       - "8069:8069"
     volumes:
       - odoo-web-data:/var/lib/odoo
-      - ./config:/etc/odoo
-      - ./addons:/mnt/extra-addons
     environment:
       - PASSWORD_FILE=/run/secrets/postgresql_password
     secrets:
@@ -27,7 +24,6 @@ services:
     networks:
       - web-network
       - db-network
-
   db:
     image: postgres:15
     environment:
