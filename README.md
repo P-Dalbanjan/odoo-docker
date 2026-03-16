@@ -1,20 +1,25 @@
+# 🐳 Odoo 17 Docker Deployment with Nginx
+
+This repository provides a minimal **Docker Compose setup** for running **Odoo 17** with **PostgreSQL 15** behind an **Nginx reverse proxy**.
+
+The configuration is designed to be **simple, secure, and easy to deploy** for development or small server environments.
+
+---
+
 # 🏗️ Architecture Overview
 
-The stack contains two services orchestrated using Docker Compose:
+The deployment consists of three services orchestrated with Docker Compose:
 
-**Odoo Web Application**
+![Architechtural Diagram of Odoo with Docker.](./architechture.png)
 
-* Runs **Odoo 17**
-* Exposes the web interface on **port 8069**
-* Supports custom addons
-* Uses persistent storage for Odoo data
+* **Nginx (Web Server)**
+  Public entry point on **port 80** that forwards HTTP requests to Odoo.
 
-**PostgreSQL Database**
+* **Odoo (Application Server)**
+  Runs **Odoo 17** and connects to PostgreSQL. Application data is stored in a persistent volume.
 
-* Runs **PostgreSQL 15**
-* Stores all Odoo databases
-* Uses persistent storage for database files
-* Password managed via **Docker Secrets**
+* **PostgreSQL (Database)**
+  **PostgreSQL 15** stores all Odoo application data.
 
 ---
 
@@ -22,185 +27,185 @@ The stack contains two services orchestrated using Docker Compose:
 
 ## 1. Prerequisites
 
-Make sure the following are installed on your system:
+Ensure the following tools are installed:
 
-* Docker
-* Docker Compose
-
-Installation guides:
-
-* [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/)
-* [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/)
+* [Git](https://git-scm.com/install)
+* [Docker](https://docs.docker.com/engine/install/)
+* [Docker Compose](https://docs.docker.com/compose/install/)
 
 ---
 
-## 2. Setup Database Password
+## 2. Clone the Repository
 
-Create the PostgreSQL password file used by Docker secrets.
+```bash
+git clone https://github.com/dalbanjan-git/odoo-docker.git
+cd odoo-docker
+```
+
+---
+
+## 3. Configure the Database Password
+
+Create a file that stores the PostgreSQL password used by both Odoo and the database.
 
 ```bash
 echo "your-secure-password" > odoo_pg_pass
 ```
 
-This file will be mounted securely inside containers as a secret.
-
-**Important:**
-Do **not commit this file to version control**.
+**Note:**
+The `odoo_pg_pass` file is included in `.gitignore` to prevent credentials from being committed to version control.
 
 ---
 
-## 3. Start the Stack
+## 4. Start the Stack
 
-Run the containers in detached mode:
+Launch the services:
 
 ```bash
 docker compose up -d
 ```
 
-Docker will automatically:
-
-* Pull required images
-* Create volumes
-* Start Odoo and PostgreSQL
-* Connect both services
+Docker will download the required images and start the containers.
 
 ---
 
-# 🌐 Access Odoo
+## 5. Access Odoo
 
-After deployment, open your browser and visit:
-
-```
-http://localhost:8069
-```
-
-Or on a remote server:
+Open your browser and visit:
 
 ```
-http://your-server-ip:8069
+http://localhost
 ```
+
+You should see the **Odoo database setup page**.
 
 ---
 
-# 📂 Project Structure
+# ⚙️ Configuration
 
-Example structure for this setup:
+## Reverse Proxy (Nginx)
+
+Nginx listens on **port 80** and forwards traffic to the Odoo application on **port 8069**.
+
+Configuration file:
 
 ```
-project-root
-│
-├── docker-compose.yml
-├── odoo_pg_pass
-│
-├── config/
-│   └── odoo.conf
-│
-└── addons/
-    └── custom_modules
+nginx/nginx.conf
 ```
+
+Responsibilities:
+
+* Accept HTTP requests
+* Forward traffic to Odoo
+* Preserve client headers (e.g., IP address)
 
 ---
-
-# 🛠️ Configuration Details
 
 ## Docker Secrets
 
-The PostgreSQL password is managed using **Docker Secrets**.
+The PostgreSQL password is provided using **Docker Secrets**.
 
-```
-odoo_pg_pass
+```yaml
+secrets:
+  postgresql_password:
+    file: odoo_pg_pass
 ```
 
-This file is mounted inside containers as:
+Inside containers the secret is available at:
 
 ```
 /run/secrets/postgresql_password
 ```
 
-Both **Odoo** and **PostgreSQL** read the password securely from this location.
+This avoids exposing passwords in environment variables or configuration files.
 
 ---
 
 ## Persistent Volumes
 
-To ensure data persists across container restarts, the following volumes are used:
+Docker volumes ensure data persists even if containers are recreated.
 
-| Volume          | Purpose                                |
-| --------------- | -------------------------------------- |
-| `odoo-web-data` | Stores Odoo filestore and session data |
-| `odoo-db-data`  | Stores PostgreSQL database files       |
-
-These volumes are automatically created by Docker.
+| Volume          | Purpose                   |
+| --------------- | ------------------------- |
+| `odoo-web-data` | Odoo application data     |
+| `odoo-db-data`  | PostgreSQL database files |
 
 ---
 
-## Custom Addons
+## Networking
 
-Custom modules can be added to:
+Two Docker networks isolate services.
 
-```
-./addons
-```
+### `web-network`
 
-This directory is mounted inside the container at:
+Connects:
 
-```
-/mnt/extra-addons
-```
+* Nginx
+* Odoo
 
-Odoo will automatically detect modules from this location.
+Handles incoming web traffic.
 
----
+### `db-network`
 
-## Odoo Configuration
+Connects:
 
-Custom configuration files can be placed in:
+* Odoo
+* PostgreSQL
 
-```
-./config
-```
-
-Mounted to:
-
-```
-/etc/odoo
-```
-
-Typical file:
-
-```
-config/odoo.conf
-```
+Marked as **internal**, preventing external access.
 
 ---
 
-# 🛑 Stopping the Stack
+# 🔧 Useful Commands
 
-To stop the services:
+Start containers:
+
+```bash
+docker compose up -d
+```
+
+Stop containers:
 
 ```bash
 docker compose down
 ```
 
-To stop **and remove volumes**:
+View logs:
 
 ```bash
-docker compose down -v
+docker compose logs -f
 ```
 
-⚠️ This will delete all database data.
+Restart services:
+
+```bash
+docker compose restart
+```
 
 ---
 
-# 📦 Docker Images Used
+# 🔐 Security Notes
 
-* **Odoo:** `odoo:17.0`
-* **PostgreSQL:** `postgres:15`
+For production deployments consider adding:
+
+* HTTPS with TLS certificates
+* Firewall restrictions
+* Automated database backups
+* Monitoring and logging
+
+This setup already includes:
+
+* Internal database network isolation
+* Secret-based password management
+* Persistent storage volumes
 
 ---
 
-## ⚖️ License
+# ⚖️ License
 
-This project is released under the **Unlicense**, making it free and unencumbered software released into the public domain. You are free to copy, modify, publish, or sell this software for any purpose.
+This project is released under **The Unlicense**, placing it in the public domain.
 
-For more information, please refer to the [LICENSE](https://github.com/dalbanjan-git/odoo-docker?tab=Unlicense-1-ov-file) file or [unlicense.org](https://unlicense.org).
+You may copy, modify, publish, use, compile, sell, or distribute this software for any purpose.
+
+More details:
+[https://unlicense.org](https://unlicense.org)
