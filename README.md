@@ -10,7 +10,7 @@ The configuration is designed to be **simple, secure, and easy to deploy** for d
 
 The deployment consists of three services orchestrated with Docker Compose:
 
-![Architechtural Diagram of Odoo with Docker.](./architechture.png)
+![Architechtural Diagram of Odoo with Docker.](./assets/architechture.png)
 
 * **Nginx (Web Server)**
   Public entry point on **port 80** that forwards HTTP requests to Odoo.
