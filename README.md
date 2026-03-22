@@ -38,7 +38,7 @@ Ensure the following tools are installed:
 ## 2. Clone the Repository
 
 ```bash
-git clone https://github.com/dalbanjan-git/odoo-docker.git
+git clone https://github.com/P-Dalbanjan/odoo-docker.git
 cd odoo-docker
 ```
 
