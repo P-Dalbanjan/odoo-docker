@@ -29,7 +29,7 @@ The deployment consists of three services orchestrated with Docker Compose:
 
 Ensure the following tools are installed:
 
-* [Git](https://git-scm.com/install)
+* [Git](https://git-scm.com/install/)
 * [Docker](https://docs.docker.com/engine/install/)
 * [Docker Compose](https://docs.docker.com/compose/install/)
 
